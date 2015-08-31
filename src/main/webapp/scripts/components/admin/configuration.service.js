@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('jhipsterApp')
+angular.module('samplejava7App')
     .factory('ConfigurationService', function ($rootScope, $filter, $http) {
         return {
             get: function() {

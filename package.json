@@ -1,7 +1,7 @@
 {
-  "name": "jhipster",
+  "name": "samplejava7",
   "version": "0.0.0",
-  "description": "Description for jhipster",
+  "description": "Description for sampleJava7",
   "private": true,
   "dependencies": {
   },

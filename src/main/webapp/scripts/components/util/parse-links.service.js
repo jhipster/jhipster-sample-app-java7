@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('jhipsterApp')
+angular.module('samplejava7App')
     .service('ParseLinks', function () {
         this.parse = function (header) {
             if (header.length == 0) {
