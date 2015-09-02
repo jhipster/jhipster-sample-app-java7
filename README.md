@@ -1,4 +1,4 @@
-# Developping sampleJava7
+# Developing sampleJava7
 
 sampleJava7 was generated using JHipster, you can find documentation and help at [JHipster][].
 
