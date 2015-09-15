@@ -7,7 +7,7 @@ angular.module('samplejava7App')
                 parent: 'admin',
                 url: '/configuration',
                 data: {
-                    roles: ['ROLE_ADMIN'],
+                    authorities: ['ROLE_ADMIN'],
                     pageTitle: 'configuration.title'
                 },
                 views: {

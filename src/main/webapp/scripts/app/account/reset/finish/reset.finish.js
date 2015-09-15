@@ -7,7 +7,7 @@ angular.module('samplejava7App')
                 parent: 'account',
                 url: '/reset/finish?key',
                 data: {
-                    roles: []
+                    authorities: []
                 },
                 views: {
                     'content@': {

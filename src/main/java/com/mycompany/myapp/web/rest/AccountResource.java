@@ -115,9 +115,9 @@ public class AccountResource {
         if (user == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        List<String> roles = new ArrayList<>();
+        Set<String> authorities = new HashSet<>();
         for (Authority authority : user.getAuthorities()) {
-            roles.add(authority.getName());
+            authorities.add(authority.getName());
         }
         return new ResponseEntity<>(
             new UserDTO(
@@ -126,8 +126,9 @@ public class AccountResource {
                 user.getFirstName(),
                 user.getLastName(),
                 user.getEmail(),
+                user.getActivated(),
                 user.getLangKey(),
-                roles),
+                authorities),
             HttpStatus.OK);
     }
 
@@ -212,7 +213,7 @@ public class AccountResource {
         produces = MediaType.TEXT_PLAIN_VALUE)
     @Timed
     public ResponseEntity<?> requestPasswordReset(@RequestBody String mail, HttpServletRequest request) {
-        
+
         User user = userService.requestPasswordReset(mail);
 
         if (user != null) {

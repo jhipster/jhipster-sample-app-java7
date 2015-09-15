@@ -7,7 +7,7 @@ angular.module('samplejava7App')
                 parent: 'account',
                 url: '/settings',
                 data: {
-                    roles: ['ROLE_USER'],
+                    authorities: ['ROLE_USER'],
                     pageTitle: 'global.menu.account.settings'
                 },
                 views: {

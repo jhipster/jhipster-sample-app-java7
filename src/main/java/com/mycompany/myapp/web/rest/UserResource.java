@@ -1,20 +1,32 @@
 package com.mycompany.myapp.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+import com.mycompany.myapp.domain.Authority;
 import com.mycompany.myapp.domain.User;
+import com.mycompany.myapp.repository.AuthorityRepository;
 import com.mycompany.myapp.repository.UserRepository;
 import com.mycompany.myapp.security.AuthoritiesConstants;
+import com.mycompany.myapp.service.UserService;
+import com.mycompany.myapp.web.rest.dto.ManagedUserDTO;
+import com.mycompany.myapp.web.rest.dto.UserDTO;
+import com.mycompany.myapp.web.rest.util.HeaderUtil;
+import com.mycompany.myapp.web.rest.util.PaginationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
-import java.util.List;
-import javax.servlet.http.HttpServletResponse;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * REST controller for managing users.
@@ -28,6 +40,64 @@ public class UserResource {
     @Inject
     private UserRepository userRepository;
 
+    @Inject
+    private AuthorityRepository authorityRepository;
+
+    @Inject
+    private UserService userService;
+
+    /**
+     * POST  /users -> Create a new user.
+     */
+    @RequestMapping(value = "/users",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    @Secured(AuthoritiesConstants.ADMIN)
+    public ResponseEntity<User> createUser(@RequestBody User user) throws URISyntaxException {
+        log.debug("REST request to save User : {}", user);
+        if (user.getId() != null) {
+            return ResponseEntity.badRequest().header("Failure", "A new user cannot already have an ID").body(null);
+        }
+        User result = userRepository.save(user);
+        return ResponseEntity.created(new URI("/api/users/" + result.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert("user", result.getId().toString()))
+                .body(result);
+    }
+
+    /**
+     * PUT  /users -> Updates an existing User.
+     */
+    @RequestMapping(value = "/users",
+        method = RequestMethod.PUT,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    @Transactional
+    @Secured(AuthoritiesConstants.ADMIN)
+    public ResponseEntity<ManagedUserDTO> updateUser(@RequestBody ManagedUserDTO managedUserDTO) throws URISyntaxException {
+        log.debug("REST request to update User : {}", managedUserDTO);
+        User user = userRepository.findOne(managedUserDTO.getId());
+        if (user != null) {
+            user.setId(managedUserDTO.getId());
+            user.setFirstName(managedUserDTO.getFirstName());
+            user.setLastName(managedUserDTO.getLastName());
+            user.setEmail(managedUserDTO.getEmail());
+            user.setActivated(managedUserDTO.isActivated());
+            user.setLangKey(managedUserDTO.getLangKey());
+            Set<Authority> authorities = user.getAuthorities();
+            authorities.clear();
+            for (String authority : managedUserDTO.getAuthorities()) {
+                authorities.add(authorityRepository.findOne(authority));
+            }
+            return ResponseEntity.ok()
+                .headers(HeaderUtil.createEntityUpdateAlert("user", managedUserDTO.getLogin()))
+                .body(new ManagedUserDTO(userRepository
+                    .findOne(userDTO.getId())));
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     /**
      * GET  /users -> get all users.
      */
@@ -35,9 +105,17 @@ public class UserResource {
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public List<User> getAll() {
-        log.debug("REST request to get all Users");
-        return userRepository.findAll();
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<ManagedUserDTO>> getAllUsers(Pageable pageable)
+        throws URISyntaxException {
+        Page<User> page = userRepository.findAll(pageable);
+        List<ManagedUserDTO> managedUserDTOs = new ArrayList<>();
+        for (User user : page.getContent()) {
+            ManagedUserDTO managedUserDTO = new ManagedUserDTO(user);
+            managedUserDTOs.add(managedUserDTO);
+        }
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/users");
+        return new ResponseEntity<>(managedUserDTOs, headers, HttpStatus.OK);
     }
 
     /**
@@ -47,12 +125,12 @@ public class UserResource {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public User getUser(@PathVariable String login, HttpServletResponse response) {
+    public ResponseEntity<ManagedUserDTO> getUser(@PathVariable String login) {
         log.debug("REST request to get User : {}", login);
-        User user = userRepository.findOneByLogin(login);
+        User user = userService.getUserWithAuthoritiesByLogin(login);
         if (user == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        return user;
+        return new ResponseEntity<>(new ManagedUserDTO(user), HttpStatus.OK);
     }
 }

@@ -24,6 +24,11 @@ mail:
     from: sampleJava7@localhost
 
 
+spring:
+    mvc:
+        favicon:
+            enabled: false
+
 swagger:
     title: sampleJava7 API
     description: sampleJava7 applications and beyond!

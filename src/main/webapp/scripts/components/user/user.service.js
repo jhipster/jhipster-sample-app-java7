@@ -10,6 +10,7 @@ angular.module('samplejava7App')
                         data = angular.fromJson(data);
                         return data;
                     }
-                }
+                },
+                'update': { method:'PUT' }
             });
         });
