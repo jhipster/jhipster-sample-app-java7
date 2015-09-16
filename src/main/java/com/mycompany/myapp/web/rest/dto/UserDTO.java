@@ -11,6 +11,9 @@ import javax.validation.constraints.Size;
 import java.util.Set;
 import java.util.HashSet;
 
+/**
+ * A DTO representing a user, with his authorities.
+ */
 public class UserDTO {
 
     public static final int PASSWORD_MIN_LENGTH = 5;
