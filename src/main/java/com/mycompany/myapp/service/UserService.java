@@ -138,7 +138,6 @@ public class UserService {
         return user;
     }
 
-
     @Transactional(readOnly = true)
     public User getUserWithAuthorities(Long id) {
         User user = userRepository.findOne(id);
