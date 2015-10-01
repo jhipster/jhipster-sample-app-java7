@@ -9,6 +9,6 @@ angular.module('samplejava7App')
                     AlertService.success(alertKey, { param : response.headers('X-samplejava7App-params')});
                 }
                 return response;
-            },
+            }
         };
     });
