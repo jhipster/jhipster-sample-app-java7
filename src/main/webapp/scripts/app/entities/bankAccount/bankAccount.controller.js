@@ -32,6 +32,10 @@ angular.module('samplejava7App')
         };
 
         $scope.clear = function () {
-            $scope.bankAccount = {name: null, balance: null, id: null};
+            $scope.bankAccount = {
+                name: null,
+                balance: null,
+                id: null
+            };
         };
     });

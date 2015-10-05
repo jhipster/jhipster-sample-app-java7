@@ -32,6 +32,9 @@ angular.module('samplejava7App')
         };
 
         $scope.clear = function () {
-            $scope.label = {label: null, id: null};
+            $scope.label = {
+                label: null,
+                id: null
+            };
         };
     });

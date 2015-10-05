@@ -60,7 +60,11 @@ angular.module('samplejava7App')
                         size: 'lg',
                         resolve: {
                             entity: function () {
-                                return {name: null, balance: null, id: null};
+                                return {
+                                    name: null,
+                                    balance: null,
+                                    id: null
+                                };
                             }
                         }
                     }).result.then(function(result) {
