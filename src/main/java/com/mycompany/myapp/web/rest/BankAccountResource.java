@@ -16,8 +16,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing BankAccount.
@@ -86,13 +86,13 @@ public class BankAccountResource {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public ResponseEntity<BankAccount> getBankAccount(@PathVariable Long id, HttpServletResponse response) {
+    public ResponseEntity<BankAccount> getBankAccount(@PathVariable Long id) {
         log.debug("REST request to get BankAccount : {}", id);
-        BankAccount bankAccount = bankAccountRepository.findOne(id);
-        if (bankAccount == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(bankAccount, HttpStatus.OK);
+        return Optional.ofNullable(bankAccountRepository.findOne(id))
+            .map(bankAccount -> new ResponseEntity<>(
+                bankAccount,
+                HttpStatus.OK))
+            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**

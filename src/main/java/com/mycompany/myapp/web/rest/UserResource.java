@@ -27,6 +27,7 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing users.
@@ -97,26 +98,26 @@ public class UserResource {
     @Secured(AuthoritiesConstants.ADMIN)
     public ResponseEntity<ManagedUserDTO> updateUser(@RequestBody ManagedUserDTO managedUserDTO) throws URISyntaxException {
         log.debug("REST request to update User : {}", managedUserDTO);
-        User user = userRepository.findOne(managedUserDTO.getId());
-        if (user != null) {
-            user.setId(managedUserDTO.getId());
-            user.setFirstName(managedUserDTO.getFirstName());
-            user.setLastName(managedUserDTO.getLastName());
-            user.setEmail(managedUserDTO.getEmail());
-            user.setActivated(managedUserDTO.isActivated());
-            user.setLangKey(managedUserDTO.getLangKey());
-            Set<Authority> authorities = user.getAuthorities();
-            authorities.clear();
-            for (String authority : managedUserDTO.getAuthorities()) {
-                authorities.add(authorityRepository.findOne(authority));
-            }
-            return ResponseEntity.ok()
-                .headers(HeaderUtil.createEntityUpdateAlert("user", managedUserDTO.getLogin()))
-                .body(new ManagedUserDTO(userRepository
-                    .findOne(managedUserDTO.getId())));
-        } else {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return Optional.of(userRepository
+            .findOne(managedUserDTO.getId()))
+            .map(user -> {
+                user.setLogin(managedUserDTO.getLogin());
+                user.setFirstName(managedUserDTO.getFirstName());
+                user.setLastName(managedUserDTO.getLastName());
+                user.setEmail(managedUserDTO.getEmail());
+                user.setActivated(managedUserDTO.isActivated());
+                user.setLangKey(managedUserDTO.getLangKey());
+                Set<Authority> authorities = user.getAuthorities();
+                authorities.clear();
+                managedUserDTO.getAuthorities().stream().forEach(
+                    authority -> authorities.add(authorityRepository.findOne(authority))
+                );
+                return ResponseEntity.ok()
+                    .headers(HeaderUtil.createEntityUpdateAlert("user", managedUserDTO.getLogin()))
+                    .body(new ManagedUserDTO(userRepository
+                        .findOne(managedUserDTO.getId())));
+            })
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     /**
@@ -130,11 +131,9 @@ public class UserResource {
     public ResponseEntity<List<ManagedUserDTO>> getAllUsers(Pageable pageable)
         throws URISyntaxException {
         Page<User> page = userRepository.findAll(pageable);
-        List<ManagedUserDTO> managedUserDTOs = new ArrayList<>();
-        for (User user : page.getContent()) {
-            ManagedUserDTO managedUserDTO = new ManagedUserDTO(user);
-            managedUserDTOs.add(managedUserDTO);
-        }
+        List<ManagedUserDTO> managedUserDTOs = page.getContent().stream()
+            .map(user -> new ManagedUserDTO(user))
+            .collect(Collectors.toList());
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/users");
         return new ResponseEntity<>(managedUserDTOs, headers, HttpStatus.OK);
     }
@@ -148,10 +147,9 @@ public class UserResource {
     @Timed
     public ResponseEntity<ManagedUserDTO> getUser(@PathVariable String login) {
         log.debug("REST request to get User : {}", login);
-        User user = userService.getUserWithAuthoritiesByLogin(login);
-        if (user == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(new ManagedUserDTO(user), HttpStatus.OK);
+        return userService.getUserWithAuthoritiesByLogin(login)
+                .map(user -> new ManagedUserDTO(user))
+                .map(managedUserDTO -> new ResponseEntity<>(managedUserDTO, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }

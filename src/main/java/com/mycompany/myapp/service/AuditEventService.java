@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for managing audit events.
@@ -44,13 +45,7 @@ public class AuditEventService {
         return auditEventConverter.convertToAuditEvent(persistentAuditEvents);
     }
 
-    public AuditEvent find(Long id) {
-        PersistentAuditEvent event =  persistenceAuditEventRepository.findOne(id);
-        AuditEvent auditEvent = null;
-        if(event != null){
-            auditEvent = auditEventConverter.convertToAuditEvent(event);
-        }
-        return auditEvent;
+    public Optional<AuditEvent> find(Long id) {
+        return Optional.ofNullable(persistenceAuditEventRepository.findOne(id)).map(auditEventConverter::convertToAuditEvent);
     }
-
 }

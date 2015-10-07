@@ -7,20 +7,24 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Spring Data JPA repository for the User entity.
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    User findOneByActivationKey(String activationKey);
+    Optional<User> findOneByActivationKey(String activationKey);
 
     List<User> findAllByActivatedIsFalseAndCreatedDateBefore(DateTime dateTime);
 
-    User findOneByResetKey(String resetKey);
+    Optional<User> findOneByResetKey(String resetKey);
 
-    User findOneByLogin(String login);
+    Optional<User> findOneByEmail(String email);
 
-    User findOneByEmail(String email);
+    Optional<User> findOneByLogin(String login);
+
+    @Override
+    void delete(User t);
 
 }

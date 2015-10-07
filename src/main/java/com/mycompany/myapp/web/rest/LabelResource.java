@@ -16,8 +16,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing Label.
@@ -86,13 +86,13 @@ public class LabelResource {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public ResponseEntity<Label> getLabel(@PathVariable Long id, HttpServletResponse response) {
+    public ResponseEntity<Label> getLabel(@PathVariable Long id) {
         log.debug("REST request to get Label : {}", id);
-        Label label = labelRepository.findOne(id);
-        if (label == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(label, HttpStatus.OK);
+        return Optional.ofNullable(labelRepository.findOne(id))
+            .map(label -> new ResponseEntity<>(
+                label,
+                HttpStatus.OK))
+            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**

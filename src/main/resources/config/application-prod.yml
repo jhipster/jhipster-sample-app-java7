@@ -53,6 +53,10 @@ jhipster:
             maxBytesLocalHeap: 256M
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
+        spark:
+            enabled: false
+            host: localhost
+            port: 9999
         graphite:
             enabled: false
             host: localhost

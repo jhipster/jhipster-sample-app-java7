@@ -59,6 +59,9 @@ public class SwaggerConfiguration {
             .directModelSubstitute(org.joda.time.LocalDate.class, String.class)
             .directModelSubstitute(org.joda.time.LocalDateTime.class, Date.class)
             .directModelSubstitute(org.joda.time.DateTime.class, Date.class)
+            .directModelSubstitute(java.time.LocalDate.class, String.class)
+            .directModelSubstitute(java.time.ZonedDateTime.class, Date.class)
+            .directModelSubstitute(java.time.LocalDateTime.class, Date.class)
             .select()
             .paths(regex(DEFAULT_INCLUDE_PATTERN))
             .build();

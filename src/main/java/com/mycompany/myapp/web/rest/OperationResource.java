@@ -19,8 +19,8 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * REST controller for managing Operation.
@@ -81,7 +81,7 @@ public class OperationResource {
         throws URISyntaxException {
         Page<Operation> page = operationRepository.findAll(pageable);
         HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/operations");
-        return new ResponseEntity<List<Operation>>(page.getContent(), headers, HttpStatus.OK);
+        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
     }
 
     /**
@@ -91,13 +91,13 @@ public class OperationResource {
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public ResponseEntity<Operation> getOperation(@PathVariable Long id, HttpServletResponse response) {
+    public ResponseEntity<Operation> getOperation(@PathVariable Long id) {
         log.debug("REST request to get Operation : {}", id);
-        Operation operation = operationRepository.findOneWithEagerRelationships(id);
-        if (operation == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(operation, HttpStatus.OK);
+        return Optional.ofNullable(operationRepository.findOneWithEagerRelationships(id))
+            .map(operation -> new ResponseEntity<>(
+                operation,
+                HttpStatus.OK))
+            .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**
